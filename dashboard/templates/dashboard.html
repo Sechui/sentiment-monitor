@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>舆情监控仪表盘</title>
+  <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+</head>
+<body>
+  <h2>微博情感分布</h2>
+  <div id="chart" style="width: 600px; height: 400px;"></div>
+  <h3>数据明细</h3>
+  <input id="search" placeholder="关键词搜索">
+  <button onclick="loadPosts()">查询</button>
+  <ul id="posts"></ul>
+<script>
+function loadStats() {
+  fetch('/api/stats').then(r=>r.json()).then(data=>{
+    let chart = echarts.init(document.getElementById('chart'));
+    let legend = Object.keys(data);
+    let series = legend.map(k=>({name: k, value: data[k]}));
+    chart.setOption({
+      tooltip: {},
+      legend: { data: legend },
+      series: [{ type: 'pie', data: series }]
+    });
+  });
+}
+function loadPosts() {
+  let keyword = document.getElementById('search').value;
+  fetch('/api/posts?keyword='+encodeURIComponent(keyword)).then(r=>r.json()).then(list=>{
+    let ul = document.getElementById('posts');
+    ul.innerHTML = "";
+    list.forEach(post=>{
+      let li = document.createElement('li');
+      li.innerText = `[${post.platform}] (${post.label}) ${post.text}`;
+      ul.appendChild(li);
+    });
+  });
+}
+loadStats(); loadPosts();
+</script>
+</body>
+</html>
